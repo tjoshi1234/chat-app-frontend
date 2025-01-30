@@ -40,7 +40,7 @@ const JoinCreateChat = () => {
                 setCurrUser(detail.userName)
                 setConnected(true)
                setRoomId(response.roomId)
-               console.log(response)
+            //   console.log(response)
                 navigate('/chat')
             } catch (error) {
                // console.log(error)
@@ -56,7 +56,7 @@ const JoinCreateChat = () => {
             // call API to create room on backend
             try {
                const response = await createRoomAPI(detail.roomId)
-               console.log(response);
+               console.log("HEHEHE" + response);
                toast.success("Room created successfully !!")
                setRoomId(response.roomId)
                setCurrUser(detail.userName)

@@ -13,7 +13,7 @@ let ChatPage = () => {
 
     const navigate = useNavigate()
 
-    const { roomId, currUser, connected } = useChatContext();
+    const { roomId, currUser, connected, setConnected, setRoomId, setCurrUser } = useChatContext();
 
     // console.log(roomId);
     // console.log(currUser);
@@ -41,16 +41,30 @@ useEffect(()=>{
 
         try {
             const oldmessages = await getMessages(roomId)
-           // console.log(`hiiiiiiiii`+oldmessages);
+        //    console.log(`hiiiiiiiii `+oldmessages[1].timeStamp);
             setMessages(oldmessages)
             
         } catch (error) {
             
         }
     }
+    if(connected){
     loadMessages()
+    }
 }
 ,[])
+
+// scroll down
+
+useEffect(()=>{
+
+    if(chatBoxRef.current){
+        chatBoxRef.current.scroll({
+            top: chatBoxRef.current.scrollHeight,
+            behavior: "smooth"
+        })
+    }
+},[messages])
 
 // stompClient connection establish in init
     // subscribe
@@ -72,7 +86,7 @@ useEffect(()=>{
                 toast.success("Connected")
 
                 client.subscribe(`/topic/room/${roomId}`,(message) => {
-                    console.log((message));
+                    console.log("YOYO "+(message));
 
                     const newMessage = JSON.parse(message.body)
                     setMessages((prev) => [...prev,newMessage])
@@ -80,7 +94,9 @@ useEffect(()=>{
                 })
             })
         }
+        if(connected){
         connectWebSocket()
+        }
     },[roomId])
 
 
@@ -107,6 +123,14 @@ const sendMessage = async () => {
     }
 }
 
+function handleLogOut(){
+    stompClient.disconnect()
+    setConnected(false)
+    navigate('/')
+    setCurrUser('')
+    setRoomId('')
+}
+
 
     return <>
     <div className="">
@@ -115,22 +139,22 @@ const sendMessage = async () => {
             <div>
                 {/* room name container */}
                 <h1 className="text-xl font-semibold">
-                    Room : <span>Family Room</span>
+                    Room : <span>{roomId}</span>
                 </h1>
             </div>
             <div>
                 {/* username container */}
                 <h1 className="text-xl font-semibold">
-                    User : <span>Tapan Joshi</span>
+                    User : <span>{currUser}</span>
                 </h1>
             </div>
             <div>
                 {/* leave room button */}
-                <button className="dark:bg-red-500 dark:hover:bg-red-700 px-3 py-2 rounded-full">Leave Room</button>
+                <button onClick={handleLogOut} className="dark:bg-red-500 dark:hover:bg-red-700 px-3 py-2 rounded-full">Leave Room</button>
             </div>
         </header>
 
-        <main className="py-20 px-10 w-2/3 dark:bg-slate-600 mx-auto h-screen overflow-auto">
+        <main ref={chatBoxRef} className="py-20 px-10 w-2/3 dark:bg-slate-600 mx-auto h-screen overflow-auto">
             {/* <div className="message_container"></div> */}
             {
                 messages.map((message,index)=>(
@@ -157,6 +181,11 @@ const sendMessage = async () => {
                 value={input}
                 onChange={(e)=>{
                     setInput(e.target.value)
+                }}
+                onKeyDown={(e)=>{
+                    if(e.key === "Enter"){
+                        sendMessage()
+                    }
                 }}/>
                 <div className="flex gap-1">
                 <button className="dark:bg-purple-600 h-10 w-10 flex justify-center items-center rounded-full">
